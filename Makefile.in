@@ -1,0 +1,48 @@
+# @configure_input@
+CFLAGS:= -Werror -Wall -std=c99 -fPIC
+
+# CFLAGS+= $(shell libassuan-config --cflags)
+# LDFLAGS+= $(shell libassuan-config --libs)
+
+# CFLAGS+= $(shell libgcrypt-config --cflags)
+# LDFLAGS+= $(shell libgcrypt-config  --libs)
+
+CFLAGS+= @extra_CFLAGS@
+LDFLAGS+= @extra_LDFLAGS@
+
+TARGET:=scd-pkcs11-$(shell uname -s)-$(shell uname -m).so
+TARGET_SHORTNAME:=scd-pkcs11.so
+SOURCES:=pkcs11-impl.c sec.c scd.c
+OBJECTS:=$(SOURCES:.c=.o)
+
+prefix:=@prefix@
+exec_prefix:=@exec_prefix@
+libdir:=@libdir@
+
+%.o: %.c
+	$(CC) -c $< $(CPPFLAGS) $(CFLAGS)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) -shared $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+
+debug:
+	CPPFLAGS=-DSEC_DEBUG $(MAKE)
+
+clean:
+	rm -f $(TARGET) $(OBJECTS)
+
+distclean: clean
+	rm -f Makefile config.log config.status
+
+install: $(TARGET)
+	cp "$(TARGET)" "$(libdir)/$(TARGET_SHORTNAME)"
+
+uninstall: 
+	rm -f "$(libdir)/$(TARGET_SHORTNAME)"
+	
+# deps
+sec.c: sec.h common.h
+pkcs11-impl.c: sec.h scd.h common.h
+scd.c: scd.h common.h

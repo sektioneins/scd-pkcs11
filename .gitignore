@@ -1,0 +1,5 @@
+*.log
+scd*.so
+*.o
+config.status
+Makefile
