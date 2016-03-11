@@ -75,7 +75,17 @@ void sec_free_token()
 /* ---- BUILD ATTRIBUTE LISTS */
 
 
-	
+static uchar * sec_al_copy_attr(CK_ATTRIBUTE_TYPE type, struct sec_ck_alist al, CK_ULONG *len)
+{
+	CK_ATTRIBUTE_PTR pa = sec_al_get_attr(type, al);
+	if (pa == NULL)
+		return NULL;
+	*len = pa->ulValueLen;
+	uchar *p = malloc(pa->ulValueLen);
+	memcpy(p, pa->pValue, pa->ulValueLen);
+	return p;
+}
+
 static void sec_convert_cert3_to_attribute_list()
 {
 	if (g_state.token == NULL) {
@@ -266,17 +276,11 @@ static void sec_create_privkey3_al()
 	SEC_ALLOC_ASSIGN(CK_BBOOL, token, CK_TRUE)
 	SEC_ALLOC_ASSIGN(CK_BBOOL, private, CK_TRUE)
 
-	uchar *modulus = NULL;
-	CK_ULONG modulus_len = -1;
-	CK_ATTRIBUTE_PTR paModulus = sec_al_get_attr(CKA_MODULUS, g_state.token->alPub[SEC_KEY3]);
-	if (paModulus == NULL) {
-		// this is bad!
-	} else {
-		modulus_len = paModulus->ulValueLen;
-		modulus = malloc(modulus_len);
-		memset(modulus, 1, modulus_len); // fake data. needed just for key length in NSS/firefox
-	}
-	
+	CK_ULONG modulus_len = -1, modulus_bits_len = -1, exponent_len = -1;
+	uchar *modulus = sec_al_copy_attr(CKA_MODULUS, g_state.token->alPub[SEC_KEY3], &modulus_len);
+	uchar *modulus_bits = sec_al_copy_attr(CKA_MODULUS_BITS, g_state.token->alPub[SEC_KEY3], &modulus_bits_len);
+	uchar *exponent = sec_al_copy_attr(CKA_PUBLIC_EXPONENT, g_state.token->alPub[SEC_KEY3], &exponent_len);
+
 	CK_ATTRIBUTE template[] = {
 		{CKA_CLASS, class, sizeof(*class)},
 		{CKA_ID, id, sizeof(*id)},
@@ -295,6 +299,8 @@ static void sec_create_privkey3_al()
 		{CKA_TOKEN, token, sizeof(*token)},
 		{CKA_PRIVATE, private, sizeof(*private)},
 		{CKA_MODULUS, modulus, modulus_len},
+		{CKA_MODULUS_BITS, modulus_bits, modulus_bits_len},
+		{CKA_PUBLIC_EXPONENT, exponent, exponent_len},
 	};
 	g_state.token->alPriv[SEC_KEY3].p = malloc(sizeof(template));
 	memcpy(g_state.token->alPriv[SEC_KEY3].p, template, sizeof(template));
