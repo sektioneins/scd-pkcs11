@@ -19,8 +19,11 @@
 #include "scd.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <gcrypt.h>
+#include <locale.h>
+
 
 struct sec_signature {
 	uchar *pSignature;
@@ -52,6 +55,48 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 	return 1;
 }
 
+static inline int is_optstr_clean(char *str)
+{
+	while (*str != 0) {
+		if (*str < 32) { return 0; }
+		str++;
+	}
+	return 1;
+}
+
+gpg_error_t scd_set_option(assuan_context_t ctx, char *key, char *value)
+{
+	if (!key || *key == 0) {
+		SDEBUG("OPTION key not set");
+		return 1;
+	}
+	if (!value) {
+		SDEBUG("OPTION value not set for key '%s'", key);
+		return 1;
+	}
+
+	if (!is_optstr_clean(value) || !is_optstr_clean(key)) {
+		SDEBUG("OPTION key or value contains illegal characters for key '%s'", key);
+		return 1;
+	}
+	
+	char *cmd;
+	if (asprintf(&cmd, "OPTION %s=%s", key, value) < 0) {
+		SDEBUG("OPITON out of memory for key '%s'", key);
+		return 1;
+	}
+	
+	gpg_error_t err;
+	err = assuan_transact(ctx, cmd, NULL, NULL, NULL, NULL, NULL, NULL);
+
+	if (err) {
+		sec_log_err("error setting OPTION '%s=%s'", key, value);
+	}
+	
+	free(cmd);
+	return err;
+}
+
 gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 {
 	gpg_error_t err;
@@ -72,6 +117,29 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 		*ctx = NULL;
 		return err;
 	}
+	
+	// set options. ignore errors - see debug log for debugging problems
+	char *val = NULL;
+	val = getenv("GPG_TTY");
+	if (!val) {
+		val = getenv("TTY");
+	}
+	if (!val) {
+		val = ttyname(0);
+	}
+	scd_set_option(*ctx, "ttyname", val);
+	
+	scd_set_option(*ctx, "display", getenv("DISPLAY"));
+	scd_set_option(*ctx, "ttytype", getenv("TERM"));
+	scd_set_option(*ctx, "lc-ctype", setlocale(LC_CTYPE, NULL));
+	scd_set_option(*ctx, "lc-messages", setlocale(LC_MESSAGES, NULL));
+	scd_set_option(*ctx, "xauthority", getenv("XAUTHORITY"));
+	scd_set_option(*ctx, "pinentry-user-data", getenv("PINENTRY_USER_DATA"));
+	scd_set_option(*ctx, "use-cache-for-signing", getenv("GPG_USE_CACHE_FOR_SIGNING"));
+	scd_set_option(*ctx, "allow-pinentry-notify", getenv("GPG_ALLOW_PINENTRY_NOTIFY"));
+	scd_set_option(*ctx, "pinentry-mode", getenv("PINENTRY_MODE"));
+	scd_set_option(*ctx, "cache-ttl-opt-preset", getenv("GPG_CACHE_TTL_OPT_PRESET"));
+	scd_set_option(*ctx, "s2k-count", getenv("GPG_S2K_COUNT"));
 	
 	return 0;
 }
