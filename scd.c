@@ -15,6 +15,9 @@
  * 
  */
 
+// for asprintf on linux
+#define _GNU_SOURCE
+
 #include "common.h"
 #include "scd.h"
 
@@ -23,6 +26,11 @@
 #include <string.h>
 #include <gcrypt.h>
 #include <locale.h>
+
+// for asprintf with not too old libgpg-error
+#ifdef GPGRT_VERSION
+#define asprintf gpgrt_asprintf
+#endif
 
 
 struct sec_signature {

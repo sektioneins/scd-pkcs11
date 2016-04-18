@@ -20,8 +20,6 @@ typedef unsigned char uchar;
 typedef unsigned int uint;
 #endif
 
-#define asprintf gpgrt_asprintf
-
 /* ----- DEBUGGING + LOGGING */
 
 #ifdef SEC_DEBUG
