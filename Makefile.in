@@ -37,6 +37,7 @@ distclean: clean
 	rm -f Makefile config.log config.status
 
 install: $(TARGET)
+	mkdir -pv "$(libdir)"
 	cp "$(TARGET)" "$(libdir)/$(TARGET_SHORTNAME)"
 
 uninstall: 
