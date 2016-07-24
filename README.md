@@ -73,6 +73,12 @@ make install
 
 That's it. See the [wiki](https://github.com/sektioneins/scd-pkcs11/wiki) for further documentation. 
 
+### Quick nstallation on OSX / macOS
+
+```
+brew install sektioneins/tap/scd-pkcs11
+```
+
 ## Feedback
 
 Please use the [issue tracker](https://github.com/sektioneins/scd-pkcs11/issues).
