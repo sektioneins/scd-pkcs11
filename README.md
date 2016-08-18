@@ -3,7 +3,7 @@ SCD-PKCS#11
 
 The scd-pkcs#11 module is a prototype / proof of concept PKCS#11 provider interfacing to GnuPG's smart card daemon (scdaemon).
 
-It allows PKCS#11 aware applications such as Firefox or OpenSSH to use smart cards via GnuPG's builtin smart card support.
+It allows PKCS#11 aware applications such as Firefox or OpenSSH to use smart cards via GnuPG's builtin smart card support. scd-pkcs#11 is an alternative to the OpenSC PKCS#11 module.
 
 ## Component Overview
 
