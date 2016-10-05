@@ -46,9 +46,10 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 	if (tmp) {
 		t = strchr(tmp, ':');
 		if (t) {
-			*t = '\0';
-			strncpy(buf, tmp, len-1);
-			buf[len-1] = '\0';
+			if (t-tmp + 1 > len)
+				return 1;
+			strncpy(buf, tmp, t-tmp);
+			buf[t-tmp] = '\0';
 			return 0;
 		}
 	}
