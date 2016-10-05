@@ -41,7 +41,7 @@ struct sec_signature {
 
 static gpg_error_t find_gpg_socket(char *buf, size_t len)
 {
-	char *tmp, *t, *ext = "/.gnupg/S.gpg-agent";
+	char *tmp, *t, *ext = NULL;
 	tmp = getenv("GPG_AGENT_INFO");
 	if (tmp) {
 		t = strchr(tmp, ':');
@@ -53,8 +53,18 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 			return 0;
 		}
 	}
+	tmp = getenv("GNUPGHOME");
+	if (tmp) {
+		ext = "/S.gpg-agent";
+		if (strlen(tmp) + strlen(ext) + 1 > len)
+			return 1;
+		t = stpcpy(buf, tmp);
+		stpcpy(t, ext);
+		return 0;
+	}
 	tmp = getenv("HOME");
 	if (tmp) {
+		ext = "/.gnupg/S.gpg-agent";
 		if (strlen(tmp) + strlen(ext) + 1 > len)
 			return 1;
 		t = stpcpy(buf, tmp);
