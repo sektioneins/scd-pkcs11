@@ -1,18 +1,18 @@
 /*
  * Copyright (C) 2015 SektionEins GmbH / Ben Fuhrmannek
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * 	http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 // for asprintf on linux
@@ -87,20 +87,20 @@ gpg_error_t scd_set_option(assuan_context_t ctx, char *key, char *value)
 		SDEBUG("OPTION key or value contains illegal characters for key '%s'", key);
 		return 1;
 	}
-	
+
 	char *cmd;
 	if (asprintf(&cmd, "OPTION %s=%s", key, value) < 0) {
 		SDEBUG("OPITON out of memory for key '%s'", key);
 		return 1;
 	}
-	
+
 	gpg_error_t err;
 	err = assuan_transact(ctx, cmd, NULL, NULL, NULL, NULL, NULL, NULL);
 
 	if (err) {
 		sec_log_err("error setting OPTION '%s=%s'", key, value);
 	}
-	
+
 	free(cmd);
 	return err;
 }
@@ -112,7 +112,7 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 
 	if (ctx == NULL) { return 1; }
 	if (*ctx != NULL) { return 0; }
-	
+
 	err = find_gpg_socket(gpg_agent_socket_name, 1024);
 	if (err) { return err; }
 
@@ -125,7 +125,7 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 		*ctx = NULL;
 		return err;
 	}
-	
+
 	// set options. ignore errors - see debug log for debugging problems
 	char *val = NULL;
 	val = getenv("GPG_TTY");
@@ -136,7 +136,7 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 		val = ttyname(0);
 	}
 	scd_set_option(*ctx, "ttyname", val);
-	
+
 	scd_set_option(*ctx, "display", getenv("DISPLAY"));
 	scd_set_option(*ctx, "ttytype", getenv("TERM"));
 	scd_set_option(*ctx, "lc-ctype", setlocale(LC_CTYPE, NULL));
@@ -148,7 +148,7 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 	scd_set_option(*ctx, "pinentry-mode", getenv("PINENTRY_MODE"));
 	scd_set_option(*ctx, "cache-ttl-opt-preset", getenv("GPG_CACHE_TTL_OPT_PRESET"));
 	scd_set_option(*ctx, "s2k-count", getenv("GPG_S2K_COUNT"));
-	
+
 	return 0;
 }
 
@@ -180,7 +180,7 @@ gpg_error_t scd_unescape_data(uchar *out, size_t *poutlen, uchar *data, size_t d
 	uchar *pin = data, *pout = out;
 	int countmode = 0; // if buffer is too short, return required buffer size in *poutlen
 	SDEBUG("maxlen=%zu datalen=%zu", *poutlen, datalen);
-	
+
 	while (pin < data + datalen) {
 		if (!countmode && pout >= out + *poutlen) {
 			rv = GPG_ERR_BUFFER_TOO_SHORT;
@@ -197,7 +197,7 @@ gpg_error_t scd_unescape_data(uchar *out, size_t *poutlen, uchar *data, size_t d
 		} else {
 			if (!countmode) *pout = *pin;
 		}
-		
+
 		pin++; pout++;
 	}
 	*poutlen = pout - out;
@@ -240,7 +240,7 @@ gpg_error_t scd_sign_data(assuan_context_t ctx, uchar *pSignature, unsigned long
 		SDEBUG("ERROR: PKAUTH failed [%x]: %s", err, gpg_strerror(err));
 		return err;
 	}
-	
+
 	return err;
 }
 
@@ -278,21 +278,21 @@ gpg_error_t scd_unpack_pubkey(uchar **pn, size_t *pnlen,
 	gcry_sexp_t sexp3 = NULL;
 	err = gcry_sexp_new(&sexp, pubkey, pubkeylen, 0);
 	if (err) goto pubkey_error;
-	
+
 	// gcry_sexp_dump(sexp);
-	
+
 	err = sec_sexp_strcmp(sexp, 0, "public-key");
 	if (err) goto pubkey_error;
-	
+
 	sexp2 = gcry_sexp_nth(sexp, 1);
 	if (sexp2 == NULL) goto pubkey_error;
-	
+
 	err = sec_sexp_strcmp(sexp2, 0, "rsa");
 	if (err) goto pubkey_error;
 
 	sexp3 = gcry_sexp_nth(sexp2, 1);
 	if (sexp3 == NULL) goto pubkey_error;
-	
+
 	err = sec_sexp_strcmp(sexp3, 0, "n");
 	if (err) goto pubkey_error;
 
@@ -303,7 +303,7 @@ gpg_error_t scd_unpack_pubkey(uchar **pn, size_t *pnlen,
 	*pnlen = len;
 
 	gcry_free(tmp);
-	
+
 	sexp3 = gcry_sexp_nth(sexp2, 2);
 	if (sexp3 == NULL) goto pubkey_error;
 
@@ -321,7 +321,7 @@ gpg_error_t scd_unpack_pubkey(uchar **pn, size_t *pnlen,
 	if (sexp2) gcry_sexp_release(sexp2);
 	if (sexp3) gcry_sexp_release(sexp3);
 	return 0;
-	
+
 pubkey_error:
 	if (err == 0) err = 1;
 	SDEBUG("error %d: %s\n", err, gcry_strerror(err));
@@ -329,7 +329,7 @@ pubkey_error:
 	if (sexp2) gcry_sexp_release(sexp2);
 	if (sexp3) gcry_sexp_release(sexp3);
 	if (*pn) { free(*pn); *pn = NULL; *pnlen = 0; }
-	if (*pe) { free(*pe); *pe = NULL; *pelen = 0; } 
+	if (*pe) { free(*pe); *pe = NULL; *pelen = 0; }
 	return err;
 
 }
