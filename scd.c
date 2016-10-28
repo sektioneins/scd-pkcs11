@@ -42,6 +42,9 @@ struct sec_signature {
 static gpg_error_t find_gpg_socket(char *buf, size_t len)
 {
 	char *tmp, *t, *ext = NULL;
+
+	// try GPG_AGENT_INFO which looks like /home/user/.gnupg/S.gpg-agent:1234:1
+	// note: GPG_AGENT_INFO is not set for gnupg >= 2.1
 	tmp = getenv("GPG_AGENT_INFO");
 	if (tmp) {
 		t = strchr(tmp, ':');
@@ -53,6 +56,8 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 			return 0;
 		}
 	}
+
+	// use $GNUPGHOME/S.gpg-agent if $GNUPGHOME is set
 	tmp = getenv("GNUPGHOME");
 	if (tmp) {
 		ext = "/S.gpg-agent";
@@ -62,6 +67,8 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 		stpcpy(t, ext);
 		return 0;
 	}
+
+	// fall back to $HOME/.gnupg/S.gpg-agent
 	tmp = getenv("HOME");
 	if (tmp) {
 		ext = "/.gnupg/S.gpg-agent";
@@ -125,9 +132,9 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 	if (*ctx != NULL) { return 0; }
 
 	err = find_gpg_socket(gpg_agent_socket_name, 1024);
-	if (err) { 
+	if (err) {
 		SDEBUG("Could not find agent path, check env. variables");
-		return err; 
+		return err;
 	}
 
 	err = assuan_new(ctx);
