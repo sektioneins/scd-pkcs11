@@ -57,13 +57,9 @@ Problems:
 
 ## Compiling / Installation
 
-This software depends on the following packages and libraries:
+Please read the [wiki installation page](https://github.com/sektioneins/scd-pkcs11/wiki/Installation).
 
-  * GnuPG version 2 (version 1 is not supported)
-  * GnuPG's smart card daemon (scdaemon)
-  * libassuan to connect to gpg-agent
-  * libgcrypt to parse S-expressions returned by scdaemon
-  * libssl (openssl or libressl) to extract CN, issuer and serial from X.509 certificate in DER format
+Quick-Install from source:
 
 ```
 ./configure
