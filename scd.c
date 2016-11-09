@@ -230,7 +230,7 @@ gpg_error_t scd_unescape_data(uchar *out, size_t *poutlen, uchar *data, size_t d
 static gpg_error_t sign_data_cb(void *arg, const void *data, size_t datalen)
 {
 	struct sec_signature *psig = (struct sec_signature*)arg;
-	gpg_error_t err = scd_unescape_data(psig->pSignature, psig->pulSignatureLen, (unsigned char *)data, datalen);
+	gpg_error_t err = scd_unescape_data(psig->pSignature, (size_t*)psig->pulSignatureLen, (unsigned char *)data, datalen);
 	return err;
 }
 
