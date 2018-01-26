@@ -1,18 +1,18 @@
 /*
  * Copyright (C) 2015 SektionEins GmbH / Ben Fuhrmannek
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * 	http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 #include <stdio.h>
@@ -61,15 +61,15 @@ SEC_PKCS11_FUNCTION(C_Initialize)
 {
 	CK_C_INITIALIZE_ARGS_PTR pArgs = (CK_C_INITIALIZE_ARGS_PTR)pInitArgs;
 	gpg_error_t err;
-	
+
 	SDEBUG("called");
 	if (g_initialized) {
 		SDEBUG("already initialized.");
 		RETURN_CKR(CKR_CRYPTOKI_ALREADY_INITIALIZED);
 	}
-	
+
 	memset(&g_state, 0, sizeof(g_state));
-	
+
 	if (pArgs != NULL_PTR) {
 		if (pArgs->CreateMutex || pArgs->DestroyMutex || pArgs->LockMutex || pArgs->UnlockMutex) {
 			if (pArgs->CreateMutex == NULL_PTR || pArgs->DestroyMutex == NULL_PTR || pArgs->LockMutex == NULL_PTR || pArgs->UnlockMutex == NULL_PTR) {
@@ -88,8 +88,9 @@ SEC_PKCS11_FUNCTION(C_Initialize)
 	err = scd_agent_connect(&g_state.ctx);
 	if (err) {
 		sec_log_err("cannot connect to agent: %d", err);
+		RETURN_CKR(CKR_FUNCTION_FAILED);
 	}
-	
+
 	g_initialized = 1;
 	RETURN_CKR(CKR_OK);
 }
@@ -105,16 +106,16 @@ SEC_PKCS11_FUNCTION(C_Finalize)
 	SDEBUG("called");
 	if (!g_initialized)
 		RETURN_CKR(CKR_CRYPTOKI_NOT_INITIALIZED);
-	
+
 	g_initialized = 0;
-	
+
 	if (g_state.ctx) {
 		assuan_release(g_state.ctx);
 		g_state.ctx = NULL;
 	}
-	
+
 	sec_free_token();
-	
+
 	RETURN_CKR(CKR_OK);
 }
 
@@ -221,7 +222,7 @@ SEC_PKCS11_FUNCTION(C_GetSlotInfo)
 	pInfo->hardwareVersion.minor = 0;
 	pInfo->firmwareVersion.major = 0;
 	pInfo->firmwareVersion.minor = 0;
-	
+
 	RETURN_CKR(CKR_OK);
 }
 
@@ -250,7 +251,7 @@ SEC_PKCS11_FUNCTION(C_GetTokenInfo)
 	if (sec_learn_token(g_state.ctx)) {
 		RETURN_CKR(CKR_TOKEN_NOT_PRESENT);
 	}
-	
+
 	memset(pInfo, 0, sizeof(CK_TOKEN_INFO));
 	strncpy((char*)pInfo->label, "Virtual token", sizeof(pInfo->label)-1);
 	strncpy((char*)pInfo->manufacturerID, "SektionEins GmbH", sizeof(pInfo->manufacturerID)-1);
@@ -269,7 +270,7 @@ SEC_PKCS11_FUNCTION(C_GetTokenInfo)
 	pInfo->ulFreePublicMemory = -1;    /* in bytes */
 	pInfo->ulTotalPrivateMemory = -1;  /* in bytes */
 	pInfo->ulFreePrivateMemory = -1;   /* in bytes */
-  
+
 	pInfo->hardwareVersion.major = 2;       /* version of hardware */
 	pInfo->hardwareVersion.minor = 1;
 	pInfo->firmwareVersion.major = 2;       /* version of firmware */
@@ -304,9 +305,9 @@ SEC_PKCS11_FUNCTION(C_GetMechanismList)
 		*pulCount = 16;
 		RETURN_CKR(CKR_BUFFER_TOO_SMALL);
 	}
-	
+
 	// TODO: somehow get the actual list from the token
-	
+
 	*pulCount = 0;
 	pMechanismList[(*pulCount)++] = CKM_SHA_1;
 	pMechanismList[(*pulCount)++] = CKM_SHA256;
@@ -408,7 +409,7 @@ SEC_PKCS11_FUNCTION(C_OpenSession)
 	// 	RETURN_CKR(CKR_PARALLEL_NOT_SUPPORTED);
 	if (g_state.session_count >= SEC_MAX_SESSION_COUNT)
 		RETURN_CKR(CKR_SESSION_COUNT);
-	
+
 	if (!scd_token_present(g_state.ctx)) {
 		sec_free_token();
 		RETURN_CKR(CKR_TOKEN_NOT_PRESENT);
@@ -473,7 +474,7 @@ SEC_PKCS11_FUNCTION(C_GetSessionInfo)
 	// CKS_RO_USER_FUNCTIONS  1
 	// --> always assume CKS_RO_USER_FUNCTIONS, because SCD handles login
 	pInfo->flags = CKF_SERIAL_SESSION;
-	
+
 	RETURN_CKR(CKR_OK);
 }
 
@@ -628,12 +629,12 @@ SEC_PKCS11_FUNCTION(C_GetAttributeValue)
 		default:
 			RETURN_CKR(CKR_OBJECT_HANDLE_INVALID);
 	}
-	
+
 	if (pA == NULL || pA->p == NULL) {
 		SDEBUG("failed (null ptr)");
 		RETURN_CKR(CKR_FUNCTION_FAILED);
 	}
-	
+
 	CK_ATTRIBUTE_PTR pTmp; // pointer to current attribute of pA
 	CK_ULONG i, j;
 	for (i = 0; i < ulCount; i++) {
@@ -666,7 +667,7 @@ SEC_PKCS11_FUNCTION(C_GetAttributeValue)
 		pTemplate[i].ulValueLen = pTmp->ulValueLen;
 	}
 
-	
+
 	return rv;
 }
 
@@ -698,13 +699,13 @@ SEC_PKCS11_FUNCTION(C_FindObjectsInit)
 	SDEBUG("called count=%lu", ulCount);
 	for (int i = 0; i < ulCount; i++) {
 		SDEBUG("attribute i=%d type=0x%lx *value=%x", i, pTemplate[i].type, pTemplate[i].pValue == NULL_PTR ? 0 : *(uint*)pTemplate[i].pValue);
-		
+
 	}
 
 	g_state.find.template.p = pTemplate;
 	g_state.find.template.cnt = ulCount;
 	g_state.find.ulResultCount = 0;
-	
+
 	// note: ulResultCount must not exceed SEC_FIND_MAXRESULTS
 
 	if (g_state.token) {
@@ -715,8 +716,8 @@ SEC_PKCS11_FUNCTION(C_FindObjectsInit)
 		if (g_state.token->alPub[SEC_KEY3].p && (ulCount == 0 || sec_al_match(g_state.find.template, g_state.token->alPub[SEC_KEY3])))
 			g_state.find.phResult[g_state.find.ulResultCount++] = SEC_OH_PUB3;
 	}
-	
-	
+
+
 	SDEBUG("returning %lu objects", g_state.find.ulResultCount);
 	RETURN_CKR(CKR_OK);
 }
@@ -748,7 +749,7 @@ SEC_PKCS11_FUNCTION(C_FindObjects)
 		*pulObjectCount = 0;
 		RETURN_CKR(CKR_OK);
 	}
-	
+
 	// copy phResult to phObject in reverse order, so that the first
 	// ulResultCount objects will always hold the remaining result
 	CK_ULONG i;
@@ -1021,7 +1022,7 @@ SEC_PKCS11_FUNCTION(C_Sign)
 
 	if (!g_state.sign.inprogress)
 		RETURN_CKR(CKR_OPERATION_NOT_INITIALIZED);
-	
+
 	if (sec_learn_token(g_state.ctx)) {
 		RETURN_CKR(CKR_DEVICE_REMOVED);
 	}
@@ -1035,32 +1036,32 @@ SEC_PKCS11_FUNCTION(C_Sign)
 		}
 		RETURN_CKR(CKR_OK);
 	}
-	
+
 	if (pData == NULL_PTR || pSignature == NULL_PTR || pulSignatureLen == NULL_PTR)
 		RETURN_CKR(CKR_ARGUMENTS_BAD);
-	
+
 	SDEBUG("datalen=%lu siglen=%lu", ulDataLen, *pulSignatureLen);
 	if (ulDataLen == 0 || ulDataLen > SEC_SIGN_MAXLEN)
 		RETURN_CKR(CKR_DATA_LEN_RANGE);
-	
+
 	gpg_error_t err;
 	err = scd_sign_data(g_state.ctx, pSignature, pulSignatureLen, pData, ulDataLen);
 	if (err == GPG_ERR_BUFFER_TOO_SHORT) {
 		RETURN_CKR(CKR_BUFFER_TOO_SMALL);
 	}
 	if (err) {
-		
+
 		SDEBUG("something went wrong");
 		RETURN_CKR(CKR_GENERAL_ERROR);
 	}
-	
+
 	g_state.sign.inprogress = 0;
 	RETURN_CKR(CKR_OK);
 }
 
 
 /* C_SignUpdate continues a multiple-part signature operation,
- * where the signature is (will be) an appendix to the data, 
+ * where the signature is (will be) an appendix to the data,
  * and plaintext cannot be recovered from the signature. */
 SEC_PKCS11_FUNCTION(C_SignUpdate)
 (
@@ -1074,7 +1075,7 @@ SEC_PKCS11_FUNCTION(C_SignUpdate)
 }
 
 
-/* C_SignFinal finishes a multiple-part signature operation, 
+/* C_SignFinal finishes a multiple-part signature operation,
  * returning the signature. */
 SEC_PKCS11_FUNCTION(C_SignFinal)
 (
@@ -1129,7 +1130,7 @@ SEC_PKCS11_FUNCTION(C_VerifyInit)
 (
   CK_SESSION_HANDLE hSession,    /* the session's handle */
   CK_MECHANISM_PTR  pMechanism,  /* the verification mechanism */
-  CK_OBJECT_HANDLE  hKey         /* verification key */ 
+  CK_OBJECT_HANDLE  hKey         /* verification key */
 )
 {
 	SDEBUG("called");
@@ -1137,7 +1138,7 @@ SEC_PKCS11_FUNCTION(C_VerifyInit)
 }
 
 
-/* C_Verify verifies a signature in a single-part operation, 
+/* C_Verify verifies a signature in a single-part operation,
  * where the signature is an appendix to the data, and plaintext
  * cannot be recovered from the signature. */
 SEC_PKCS11_FUNCTION(C_Verify)
@@ -1155,7 +1156,7 @@ SEC_PKCS11_FUNCTION(C_Verify)
 
 
 /* C_VerifyUpdate continues a multiple-part verification
- * operation, where the signature is an appendix to the data, 
+ * operation, where the signature is an appendix to the data,
  * and plaintext cannot be recovered from the signature. */
 SEC_PKCS11_FUNCTION(C_VerifyUpdate)
 (
@@ -1299,7 +1300,7 @@ SEC_PKCS11_FUNCTION(C_GenerateKey)
 }
 
 
-/* C_GenerateKeyPair generates a public-key/private-key pair, 
+/* C_GenerateKeyPair generates a public-key/private-key pair,
  * creating new key objects. */
 SEC_PKCS11_FUNCTION(C_GenerateKeyPair)
 (
