@@ -30,6 +30,9 @@ $(TARGET): $(OBJECTS)
 debug:
 	CPPFLAGS=-DSEC_DEBUG $(MAKE)
 
+debug2:
+	CPPFLAGS="-DSEC_DEBUG -DSEC_LOG_STDERR" $(MAKE)
+
 clean:
 	rm -f $(TARGET) $(OBJECTS)
 
@@ -40,9 +43,9 @@ install: $(TARGET)
 	mkdir -pv "$(libdir)"
 	cp "$(TARGET)" "$(libdir)/$(TARGET_SHORTNAME)"
 
-uninstall: 
+uninstall:
 	rm -f "$(libdir)/$(TARGET_SHORTNAME)"
-	
+
 # deps
 sec.c: sec.h common.h
 pkcs11-impl.c: sec.h scd.h common.h
