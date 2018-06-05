@@ -116,22 +116,30 @@ static void sec_convert_cert3_to_attribute_list()
 	unsigned char *p = g_state.token->cert[SEC_KEY3];
 	X509 *x = d2i_X509(NULL, (const unsigned char **)&p, g_state.token->certlen[SEC_KEY3]);
 	if (x != NULL) {
-		CK_ULONG n;
-		n = i2d_X509_NAME(x->cert_info->subject, NULL);
-		if (n > 0) {
-			subject = p = malloc(n);
-			subject_len = i2d_X509_NAME(x->cert_info->subject, &p);
+		X509_NAME *xn_subject = X509_get_subject_name(x);
+		subject = (CK_BYTE*)X509_NAME_oneline(xn_subject, NULL, 0); // allocates subject
+		if (subject) {
+			subject_len = strlen((const char*)subject);
 		}
-		n = i2d_X509_NAME(x->cert_info->issuer, NULL);
-		if (n > 0) {
-			issuer = p = malloc(n);
-			issuer_len = i2d_X509_NAME(x->cert_info->issuer, &p);
+
+		X509_NAME *xn_issuer = X509_get_issuer_name(x);
+		issuer = (CK_BYTE*)X509_NAME_oneline(xn_issuer, NULL, 0); // allocates subject
+		if (issuer) {
+			issuer_len = strlen((const char*)issuer);
 		}
-		n = i2d_ASN1_INTEGER(x->cert_info->serialNumber, NULL);
-		if (n > 0) {
-			serial = p = malloc(n);
-			serial_len = i2d_ASN1_INTEGER(x->cert_info->serialNumber, &p);
+
+		ASN1_INTEGER *a1serial = X509_get_serialNumber(x);
+		if (a1serial) {
+			BIGNUM *bn = ASN1_INTEGER_to_BN(a1serial, NULL);
+			if (bn) {
+				char *serial = BN_bn2dec(bn);
+				BN_free(bn);
+				if (serial) {
+					serial_len = strlen(serial);
+				}
+			}
 		}
+
 		X509_free(x);
 	}
 #endif /* HAVE_SSL */
