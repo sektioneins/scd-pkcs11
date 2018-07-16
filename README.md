@@ -75,6 +75,11 @@ That's it. See the [wiki](https://github.com/sektioneins/scd-pkcs11/wiki) for fu
 brew install sektioneins/tap/scd-pkcs11
 ```
 
+## Related Projects
+
+  * [Scute](http://www.scute.org/) - "Scute is a PKCS #11 module that adds support for the OpenPGP smartcard card to the Mozilla Network Security Services (NSS)."
+  * [YKCS11](https://developers.yubico.com/yubico-piv-tool/YKCS11_release_notes.html) - "This is a PKCS#11 module that allows to communicate with the PIV application running on a YubiKey."
+
 ## Feedback
 
 Please use the [issue tracker](https://github.com/sektioneins/scd-pkcs11/issues).
