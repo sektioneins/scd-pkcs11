@@ -132,10 +132,10 @@ static void sec_convert_cert3_to_attribute_list()
 		if (a1serial) {
 			BIGNUM *bn = ASN1_INTEGER_to_BN(a1serial, NULL);
 			if (bn) {
-				char *serial = BN_bn2dec(bn);
+				serial = (unsigned char *)BN_bn2dec(bn);
 				BN_free(bn);
 				if (serial) {
-					serial_len = strlen(serial);
+					serial_len = strlen((const char *)serial);
 				}
 			}
 		}
