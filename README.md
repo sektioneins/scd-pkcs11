@@ -94,7 +94,7 @@ When reporting a bug, please provide
 
 ## License
 
-Copyright (C) 2015 SektionEins GmbH / Ben Fuhrmannek
+Copyright (C) 2015-2018 SektionEins GmbH / Ben Fuhrmannek
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
