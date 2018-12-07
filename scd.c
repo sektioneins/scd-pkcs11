@@ -32,6 +32,13 @@
 #define asprintf gpgrt_asprintf
 #endif
 
+#ifdef _WINDOWS_
+static char* stpcpy(char *dst, char *src)
+{
+	strcpy(dst, src);
+	return dst + strlen(src);
+}
+#endif
 
 struct sec_signature {
 	uchar *pSignature;
@@ -57,6 +64,7 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 		}
 	}
 
+#ifndef _WINDOWS_
 	// use $GNUPGHOME/S.gpg-agent if $GNUPGHOME is set
 	tmp = getenv("GNUPGHOME");
 	if (tmp) {
@@ -78,6 +86,19 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 		stpcpy(t, ext);
 		return 0;
 	}
+
+#else // _WINDOWS_
+	tmp = getenv("APPDATA");
+	if (tmp) {
+		ext = "/gnupg/S.gpg-agent";
+		if (strlen(tmp) + strlen(ext) + 1 > len)
+			return 1;
+		t = stpcpy(buf, tmp);
+		stpcpy(t, ext);
+		return 0;
+	}
+#endif
+
 	return 1;
 }
 
@@ -148,6 +169,7 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 		return err;
 	}
 
+#ifndef _WINDOWS_
 	// set options. ignore errors - see debug log for debugging problems
 	char *val = NULL;
 	val = getenv("GPG_TTY");
@@ -158,11 +180,14 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 		val = ttyname(0);
 	}
 	scd_set_option(*ctx, "ttyname", val);
+#endif
 
 	scd_set_option(*ctx, "display", getenv("DISPLAY"));
 	scd_set_option(*ctx, "ttytype", getenv("TERM"));
 	scd_set_option(*ctx, "lc-ctype", setlocale(LC_CTYPE, NULL));
+#ifndef _WINDOWS_
 	scd_set_option(*ctx, "lc-messages", setlocale(LC_MESSAGES, NULL));
+#endif
 	scd_set_option(*ctx, "xauthority", getenv("XAUTHORITY"));
 	scd_set_option(*ctx, "pinentry-user-data", getenv("PINENTRY_USER_DATA"));
 	scd_set_option(*ctx, "use-cache-for-signing", getenv("GPG_USE_CACHE_FOR_SIGNING"));
