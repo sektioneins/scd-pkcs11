@@ -69,7 +69,7 @@ make install
 
 That's it. See the [wiki](https://github.com/sektioneins/scd-pkcs11/wiki) for further documentation. 
 
-### Quick nstallation on OSX / macOS
+### Quick Installation on OSX / macOS
 
 ```
 brew install sektioneins/tap/scd-pkcs11
