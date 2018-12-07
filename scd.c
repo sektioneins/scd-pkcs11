@@ -174,6 +174,11 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 	return 0;
 }
 
+void scd_agent_disconnect(assuan_context_t ctx)
+{
+	assuan_release(ctx);
+}
+
 gpg_error_t scd_serialno_openpgp(assuan_context_t ctx)
 {
 	gpg_error_t err;

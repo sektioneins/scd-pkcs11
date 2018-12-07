@@ -109,10 +109,8 @@ SEC_PKCS11_FUNCTION(C_Finalize)
 
 	g_initialized = 0;
 
-	if (g_state.ctx) {
-		assuan_release(g_state.ctx);
-		g_state.ctx = NULL;
-	}
+	scd_agent_disconnect(g_state.ctx);
+	g_state.ctx = NULL;
 
 	sec_free_token();
 

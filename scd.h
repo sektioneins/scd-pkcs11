@@ -6,6 +6,7 @@
 #define SEC_SIGN_MAXLEN 4096
 
 gpg_error_t scd_agent_connect(assuan_context_t *ctx);
+void scd_agent_disconnect(assuan_context_t ctx);
 gpg_error_t scd_set_option(assuan_context_t ctx, char *key, char *value);
 gpg_error_t scd_serialno_openpgp(assuan_context_t ctx);
 int scd_token_present(assuan_context_t ctx);
