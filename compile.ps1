@@ -1,6 +1,6 @@
 $gpg_inst = "C:/Program Files (x86)/GnuPG"
 $includes = @("-I${gpg_inst}/include")
-$cflags = @("-DSEC_DEBUG", "-DSEC_LOG_STDERR", "-std=gnu99", "-D_WINDOWS_")
+$cflags = @("-DSEC_DEBUG", "-DSEC_LOG_STDERR", "-std=gnu99")
 echo "."
 & gcc -c sec.c $includes $cflags
 echo "."

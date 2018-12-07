@@ -10,6 +10,10 @@
 #define SEC_LOG "/tmp/ck_log.txt"
 #endif
 
+#ifdef _WIN32
+#warning compiling experimental windows version
+#endif
+
 #define SEC_MAJOR_VERSION 0
 #define SEC_MINOR_VERSION 0
 

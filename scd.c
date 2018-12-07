@@ -32,7 +32,7 @@
 #define asprintf gpgrt_asprintf
 #endif
 
-#ifdef _WINDOWS_
+#ifdef _WIN32
 static char* stpcpy(char *dst, char *src)
 {
 	strcpy(dst, src);
@@ -64,7 +64,7 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 		}
 	}
 
-#ifndef _WINDOWS_
+#ifndef _WIN32
 	// use $GNUPGHOME/S.gpg-agent if $GNUPGHOME is set
 	tmp = getenv("GNUPGHOME");
 	if (tmp) {
@@ -87,7 +87,7 @@ static gpg_error_t find_gpg_socket(char *buf, size_t len)
 		return 0;
 	}
 
-#else // _WINDOWS_
+#else // _WIN32
 	tmp = getenv("APPDATA");
 	if (tmp) {
 		ext = "/gnupg/S.gpg-agent";
@@ -169,7 +169,7 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 		return err;
 	}
 
-#ifndef _WINDOWS_
+#ifndef _WIN32
 	// set options. ignore errors - see debug log for debugging problems
 	char *val = NULL;
 	val = getenv("GPG_TTY");
@@ -185,7 +185,7 @@ gpg_error_t scd_agent_connect(assuan_context_t *ctx)
 	scd_set_option(*ctx, "display", getenv("DISPLAY"));
 	scd_set_option(*ctx, "ttytype", getenv("TERM"));
 	scd_set_option(*ctx, "lc-ctype", setlocale(LC_CTYPE, NULL));
-#ifndef _WINDOWS_
+#ifndef _WIN32
 	scd_set_option(*ctx, "lc-messages", setlocale(LC_MESSAGES, NULL));
 #endif
 	scd_set_option(*ctx, "xauthority", getenv("XAUTHORITY"));
