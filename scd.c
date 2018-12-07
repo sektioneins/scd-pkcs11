@@ -231,11 +231,22 @@ gpg_error_t scd_unescape_data(uchar *out, size_t *poutlen, uchar *data, size_t d
 	return rv;
 }
 
+gpg_error_t scd_copy_data(uchar *out, size_t *poutlen, uchar *data, size_t datalen)
+{
+	gpg_error_t rv = 0;
+	if (*poutlen < datalen) {
+		rv = GPG_ERR_BUFFER_TOO_SHORT;
+	} else {
+		memcpy(out, data, datalen);
+	}
+	*poutlen = datalen;
+	return rv;
+}
 
 static gpg_error_t sign_data_cb(void *arg, const void *data, size_t datalen)
 {
 	struct sec_signature *psig = (struct sec_signature*)arg;
-	gpg_error_t err = scd_unescape_data(psig->pSignature, (size_t*)psig->pulSignatureLen, (unsigned char *)data, datalen);
+	gpg_error_t err = scd_copy_data(psig->pSignature, (size_t*)psig->pulSignatureLen, (unsigned char *)data, datalen);
 	return err;
 }
 

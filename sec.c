@@ -354,7 +354,7 @@ static gpg_error_t cert3_data_cb(void *arg, const void *data, size_t datalen) {
 	}
 	size_t len = SEC_CERT_MAXLEN - g_state.token->certlen[SEC_KEY3];
 	SDEBUG("cert3_data_cb len=%zu", datalen);
-	gpg_error_t err = scd_unescape_data(g_state.token->cert[SEC_KEY3] + g_state.token->certlen[SEC_KEY3], &len, (unsigned char*)data, datalen);
+	gpg_error_t err = scd_copy_data(g_state.token->cert[SEC_KEY3] + g_state.token->certlen[SEC_KEY3], &len, (unsigned char*)data, datalen);
 	g_state.token->certlen[SEC_KEY3] += len;
 	if (err) {SDEBUG("error %d", err);}
 	return err;
@@ -368,7 +368,7 @@ static gpg_error_t readkey3_data_cb(void *arg, const void *data, size_t datalen)
 	}
 
 	size_t len = SEC_KEY_MAXLEN - g_state.token->pubkeylen[SEC_KEY3];
-	gpg_error_t err = scd_unescape_data(g_state.token->pubkey[SEC_KEY3] + g_state.token->pubkeylen[SEC_KEY3], &len, (uchar*)data, datalen);
+	gpg_error_t err = scd_copy_data(g_state.token->pubkey[SEC_KEY3] + g_state.token->pubkeylen[SEC_KEY3], &len, (uchar*)data, datalen);
 	g_state.token->pubkeylen[SEC_KEY3] += len;
 
 	SDEBUG("chunklen=%zu\n", len);
@@ -381,7 +381,7 @@ gpg_error_t sec_learn_token(assuan_context_t ctx)
 	if (g_state.token != NULL)
 		return 0;
 
-	err = scd_serialno_openpgp(g_state.ctx);
+	err = scd_serialno_openpgp(ctx);
 	if (err) goto sec_learn_token_err;
 
 	g_state.token = calloc(1, sizeof(struct sec_token_info));
